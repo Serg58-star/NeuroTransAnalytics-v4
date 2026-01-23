@@ -1,63 +1,75 @@
 # FILE: src/neurotransanalytics/data_adapter/builders/stimulus_builder.py
 
-from uuid import uuid4
-
 from ..models.stimulus_event import StimulusEvent
-from ..design.psi_provider import PSIProvider
 
 
-def build_stimulus_events(sessions, warmup_design, test_design):
-    """
-    Сборка StimulusEvent для нормализованных TestSession.
+def build_stimulus_events(
+    sessions,
+    psi_provider,
+    warmup_tables
+):
+    stimuli = []
+    stimulus_id = 1
 
-    Для каждой сессии:
-    - 3 warmup
-    - 36 test
-    """
+    # ВРЕМЕННО: фиксированный warmup-вариант
+    warmup_variant = "NU0"
 
-    stimulus_events = []
-    psi_provider = PSIProvider(warmup_design, test_design)
-
-    for session in sessions.itertuples(index=False):
-        session_id = session.session_id
+    for session in sessions:
         test_type = session.test_type
 
-        global_index = 1
+        # ---------- WARMUP ----------
+        if test_type in warmup_tables:
+            df = warmup_tables[test_type]
 
-        # -------- WARMUP --------
-        for i in range(1, 4):
-            psi = psi_provider.get_warmup_psi(test_type, i)
-
-            stimulus_events.append(
-                StimulusEvent(
-                    stimulus_event_id=str(uuid4()),
-                    session_id=session_id,
-                    stimulus_role="warmup",
-                    stimulus_index_global=global_index,
-                    stimulus_index_in_phase=i,
-                    psi_pre_ms=psi,
-                    psi_source="config",
-                    design_ref="config_old.ini",
+            for order in (1, 2, 3):
+                psi = psi_provider.get_warmup_psi(
+                    test_type=test_type,
+                    variant=warmup_variant,
+                    order=order
                 )
-            )
-            global_index += 1
 
-        # -------- TEST --------
-        for i in range(1, 37):
+                row = df[
+                    (df["variant"] == warmup_variant) &
+                    (df["order"] == order)
+                ].iloc[0]
+
+                stimuli.append(
+                    StimulusEvent(
+                        stimulus_event_id=stimulus_id,
+                        session_id=session.session_id,
+
+                        stimulus_role="warmup",
+                        stimulus_index=order,
+
+                        psi_pre_ms=psi,
+                        psi_source="warmup_excel",
+
+                        warmup_variant=warmup_variant,
+                        warmup_order=order,
+
+                        stimulus_color=row.get("test_color"),
+                        stimulus_location=row.get("test_signal_position"),
+                        test_triple=row.get("test_triple"),
+                    )
+                )
+                stimulus_id += 1
+
+        # ---------- TEST ----------
+        for i in range(1, session.test_length + 1):
             psi = psi_provider.get_test_psi(test_type, i)
 
-            stimulus_events.append(
+            stimuli.append(
                 StimulusEvent(
-                    stimulus_event_id=str(uuid4()),
-                    session_id=session_id,
+                    stimulus_event_id=stimulus_id,
+                    session_id=session.session_id,
+
                     stimulus_role="test",
-                    stimulus_index_global=global_index,
-                    stimulus_index_in_phase=i,
+                    stimulus_index=i,
+
                     psi_pre_ms=psi,
                     psi_source="metadata",
-                    design_ref="test_metadata_old.py",
                 )
             )
-            global_index += 1
+            stimulus_id += 1
 
-    return stimulus_events
+    return stimuli

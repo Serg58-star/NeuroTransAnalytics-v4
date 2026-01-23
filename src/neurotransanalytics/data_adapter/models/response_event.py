@@ -1,14 +1,21 @@
 # FILE: src/neurotransanalytics/data_adapter/models/response_event.py
 
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
 class ResponseEvent:
-    def __init__(
-        self,
-        response_event_id,
-        stimulus_event_id,
-        rt_ms=None,
-        validity_flag=None
-    ):
-        self.response_event_id = response_event_id
-        self.stimulus_event_id = stimulus_event_id
-        self.rt_ms = rt_ms
-        self.validity_flag = validity_flag
+    response_event_id: int
+
+    # идентификатор тестовой сессии (cnt)
+    session_id: int
+
+    # ссылка на стимул (может отсутствовать)
+    stimulus_event_id: Optional[int]
+
+    # время реакции в мс
+    reaction_time_ms: float
+
+    # флаг валидности RT (используется в main.py)
+    validity_flag: Optional[str] = None

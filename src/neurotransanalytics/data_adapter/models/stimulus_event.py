@@ -1,22 +1,24 @@
 # FILE: src/neurotransanalytics/data_adapter/models/stimulus_event.py
 
+from dataclasses import dataclass
+from typing import Optional
+
+
+@dataclass
 class StimulusEvent:
-    def __init__(
-        self,
-        stimulus_event_id,
-        session_id,
-        stimulus_role,
-        stimulus_index_global,
-        stimulus_index_in_phase,
-        psi_pre_ms=None,
-        psi_source=None,
-        design_ref=None
-    ):
-        self.stimulus_event_id = stimulus_event_id
-        self.session_id = session_id
-        self.stimulus_role = stimulus_role
-        self.stimulus_index_global = stimulus_index_global
-        self.stimulus_index_in_phase = stimulus_index_in_phase
-        self.psi_pre_ms = psi_pre_ms
-        self.psi_source = psi_source
-        self.design_ref = design_ref
+    stimulus_event_id: int
+    session_id: int
+
+    stimulus_role: str          # "warmup" | "test"
+    stimulus_index: int         # порядок в своей фазе
+
+    stimulus_color: Optional[str] = None
+    stimulus_location: Optional[str] = None
+
+    psi_pre_ms: Optional[int] = None
+    psi_source: Optional[str] = None   # "warmup_excel" | "metadata"
+
+    # ---- warmup-only контекст ----
+    warmup_variant: Optional[str] = None   # NU0 … NU9
+    warmup_order: Optional[int] = None     # 1 / 2 / 3
+    test_triple: Optional[str] = None
