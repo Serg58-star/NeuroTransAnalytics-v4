@@ -12,7 +12,19 @@ def main():
     subjects, sessions, stimuli, responses = adapter.run()
     from collections import Counter
 
+#    flags = Counter(r.validity_flag for r in responses)
+    from collections import Counter
+    from src.neurotransanalytics.analysis.rt_validation import RTValidator
+
+    validator = RTValidator(
+        min_rt_ms=135,
+        max_rt_ms=3000
+    )
+
+    validator.validate(responses)
+
     flags = Counter(r.validity_flag for r in responses)
+    print("RT validity summary:", flags)
     print("RT validity summary:", flags)
 
     print(f"Subjects: {len(subjects)}")
