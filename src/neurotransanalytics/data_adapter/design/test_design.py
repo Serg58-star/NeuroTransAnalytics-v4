@@ -1,62 +1,100 @@
 # FILE: src/neurotransanalytics/data_adapter/design/test_design.py
 
+from pathlib import Path
 import importlib.util
 
 
 class TestDesign:
     """
-    Адаптер PSI для test-фазы.
+    Канонический доступ к тестовым метаданным v4.
 
-    Реальные ключи metadata (по факту legacy-кода):
-    - 'simple'     -> ПЗР
-    - 'color_red'  -> тест на красный цвет
-    - 'shift'      -> тест на сдвиг
+    Источник истины:
+        test_metadata_old.py
+
+    Принцип:
+        - ничего не вычисляет
+        - только читает через TestMetadataManager
     """
 
-    TEST_TYPE_TO_META_KEY = {
+    TEST_TYPE_MAP = {
         "Tst1": "simple",
         "Tst2": "color_red",
         "Tst3": "shift",
     }
 
-    def __init__(self, path):
-        spec = importlib.util.spec_from_file_location("test_metadata_old", path)
+    def __init__(self, metadata_path: Path):
+        self.module = self._load_module(metadata_path)
+        self.manager = self.module.TestMetadataManager()
+
+    # ------------------------------------------------------------------
+    # loading
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _load_module(path: Path):
+        spec = importlib.util.spec_from_file_location(
+            "test_metadata_old", path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
+        return module
 
-        self.module = module
-        self.manager = module.TestMetadataManager()
+    # ------------------------------------------------------------------
+    # Unified API (используется PSIProvider / StimulusBuilder)
+    # ------------------------------------------------------------------
 
-    def get_psi(self, test_type: str, test_index: int) -> int:
+    def get_psi(self, test_type: str, stimulus_index: int) -> int:
+        meta = self._get_stimulus(test_type, stimulus_index)
+        return meta.prestimulus_interval
+
+    def get_color(self, test_type: str, stimulus_index: int):
+        meta = self._get_stimulus(test_type, stimulus_index)
+        return meta.color
+
+    def get_location(self, test_type: str, stimulus_index: int):
+        meta = self._get_stimulus(test_type, stimulus_index)
+        return meta.position
+
+    def get_circle_sequence(self, test_type: str, stimulus_index: int):
+        meta = self._get_stimulus(test_type, stimulus_index)
+        return meta.circle_sequence
+
+    def get_shift_parameter(self, test_type: str, stimulus_index: int):
+        meta = self._get_stimulus(test_type, stimulus_index)
+        return meta.shift_parameter
+
+    # ------------------------------------------------------------------
+    # Aggregated attributes (ТО, ЧЕГО НЕ ХВАТАЛО)
+    # ------------------------------------------------------------------
+
+    def get_stimulus_attributes(self, test_type: str, stimulus_index: int) -> dict:
         """
-        Возвращает PSI (мс) для test-стимула.
-
-        test_type: 'Tst1' | 'Tst2' | 'Tst3'
-        test_index: 1..36
+        Возвращает все атрибуты тестового стимула одним словарём.
+        Используется в stimulus_builder.py.
         """
+        meta = self._get_stimulus(test_type, stimulus_index)
 
-        meta_key = self.TEST_TYPE_TO_META_KEY.get(test_type)
-        if meta_key is None:
-            raise ValueError(f"Unknown test_type: {test_type}")
+        return {
+            "stimulus_color": meta.color,
+            "stimulus_location": meta.position,
+            "circle_sequence": meta.circle_sequence,
+            "shift_parameter": meta.shift_parameter,
+        }
 
-        test_meta = self.manager._metadata_cache.get(meta_key)
-        if test_meta is None:
-            raise KeyError(
-                f"Metadata key '{meta_key}' not found. "
-                f"Available keys: {list(self.manager._metadata_cache.keys())}"
-            )
+    # ------------------------------------------------------------------
+    # Internal
+    # ------------------------------------------------------------------
+
+    def _get_stimulus(self, test_type: str, stimulus_index: int):
+        if test_type not in self.TEST_TYPE_MAP:
+            raise KeyError(f"Unknown test_type: {test_type}")
+
+        key = self.TEST_TYPE_MAP[test_type]
 
         try:
-            stimulus_meta = test_meta.stimuli[test_index - 1]
-        except IndexError:
-            raise IndexError(
-                f"Test '{meta_key}': stimulus index {test_index} out of range"
-            )
-
-        psi = stimulus_meta.prestimulus_interval
-        if psi is None:
-            raise ValueError(
-                f"PSI is None for test '{meta_key}', stimulus {test_index}"
-            )
-
-        return int(psi)
+            test_meta = self.manager._metadata_cache[key]
+            return test_meta.get_stimulus(stimulus_index)
+        except Exception as exc:
+            raise KeyError(
+                f"{test_type}: stimulus_index={stimulus_index} not found"
+            ) from exc

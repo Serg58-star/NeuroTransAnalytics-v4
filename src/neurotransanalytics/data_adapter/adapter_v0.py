@@ -4,10 +4,10 @@ from pathlib import Path
 
 from .loaders.users_loader import load_users
 from .loaders.boxbase_loader import load_boxbase
-from .loaders.warmup_loader import load_warmup_table
+from .loaders.config_loader import load_config
 
+from .design.warmup_design import WarmupDesign
 from .design.test_design import TestDesign
-from .design.psi_provider import PSIProvider
 
 from .builders.subject_builder import build_subjects
 from .builders.session_builder import build_sessions
@@ -16,42 +16,57 @@ from .builders.response_builder import build_response_events
 
 
 class DataAdapterV0:
+    """
+    Data-adapter v0 for NeuroTransAnalytics v4.
+
+    Responsibilities:
+      - load raw input files
+      - build domain objects (Subject, Session, StimulusEvent, ResponseEvent)
+      - ensure PSI and metadata are attached
+    """
+
     def __init__(self, data_dir: Path):
         self.data_dir = data_dir
 
     def run(self):
-        # --- load raw data ---
+        # ------------------------------------------------------------
+        # Load raw data
+        # ------------------------------------------------------------
         users_df = load_users(self.data_dir / "users.xlsx")
         boxbase_df = load_boxbase(self.data_dir / "boxbase.xlsx")
 
-        # --- build core entities ---
+        # config_old.ini остаётся только для test_metadata / legacy
+        config = load_config(self.data_dir / "config_old.ini")
+
+        # ------------------------------------------------------------
+        # Build domain entities
+        # ------------------------------------------------------------
         subjects = build_subjects(users_df)
         sessions = build_sessions(boxbase_df)
 
-        # --- load warmup tables (Excel) ---
-        warmup_tables = load_warmup_table(
-            self.data_dir / "stimulus_warmup.xlsx"
+        # ------------------------------------------------------------
+        # Designs
+        # ------------------------------------------------------------
+        warmup_design = WarmupDesign(
+            warmup_path=self.data_dir / "stimulus_warmup.xlsx"
         )
 
-        # --- load test metadata ---
         test_design = TestDesign(
-            self.data_dir / "test_metadata_old.py"
+            metadata_path=self.data_dir / "test_metadata_old.py"
         )
 
-        # --- PSI provider ---
-        psi_provider = PSIProvider(
-            warmup_tables=warmup_tables,
-            test_design=test_design
-        )
-
-        # --- stimuli & responses ---
+        # ------------------------------------------------------------
+        # Stimuli & responses
+        # ------------------------------------------------------------
         stimuli = build_stimulus_events(
             sessions=sessions,
-            psi_provider=psi_provider,
-            warmup_tables=warmup_tables
+            warmup_design=warmup_design,
+            test_design=test_design,
         )
 
-        responses = build_response_events(boxbase_df, stimuli)
+        responses = build_response_events(
+            boxbase_df=boxbase_df,
+            stimuli=stimuli,
+        )
 
         return subjects, sessions, stimuli, responses
-

@@ -1,14 +1,20 @@
 # FILE: src/neurotransanalytics/data_adapter/models/session.py
 
-class TestSession:
-    def __init__(
-        self,
-        session_id,
-        subject_id,
-        test_type,
-        session_datetime=None
-    ):
-        self.session_id = session_id
-        self.subject_id = subject_id
-        self.test_type = test_type
-        self.session_datetime = session_datetime
+from dataclasses import dataclass
+
+
+@dataclass
+class Session:
+    """
+    Каноническая модель тестовой сессии (v4).
+
+    Инварианты:
+    - session_id: идентификатор сессии (cnt из boxbase.xlsx)
+    - test_type: 'Tst1' | 'Tst2' | 'Tst3'
+    - warmup_variant: индекс варианта warmup (0–9), фиксированный,
+      так как реальный выбор не сохранялся
+    """
+
+    session_id: int
+    test_type: str
+    warmup_variant: int

@@ -1,34 +1,41 @@
 # FILE: src/neurotransanalytics/data_adapter/design/psi_provider.py
 
 class PSIProvider:
-    def __init__(self, warmup_tables: dict, test_design):
-        """
-        warmup_tables:
-            dict[test_type -> pandas.DataFrame]
-        test_design:
-            TestDesign
-        """
-        self.warmup_tables = warmup_tables
+    """
+    Единая точка доступа к PSI для всех типов стимулов.
+
+    Делегирует:
+      - warmup PSI -> WarmupDesign
+      - test PSI   -> TestDesign
+    """
+
+    def __init__(self, warmup_design, test_design):
+        self.warmup_design = warmup_design
         self.test_design = test_design
 
-    # ---------- WARMUP ----------
+    # ------------------------------------------------------------------
+    # Warmup PSI
+    # ------------------------------------------------------------------
 
-    def get_warmup_psi(self, test_type: str, variant: str, order: int) -> int:
-        df = self.warmup_tables[test_type]
+    def get_warmup_psi(self, test_type: str, variant: int, order: int) -> int:
+        """
+        PSI перед warmup-стимулом.
+        """
+        return self.warmup_design.get_psi(
+            test_type=test_type,
+            variant=variant,
+            order=order,
+        )
 
-        row = df[
-            (df["variant"] == variant) &
-            (df["order"] == order)
-        ]
+    # ------------------------------------------------------------------
+    # Test PSI
+    # ------------------------------------------------------------------
 
-        if row.empty:
-            raise KeyError(
-                f"No warmup PSI for {test_type}, {variant}, order={order}"
-            )
-
-        return int(row.iloc[0]["psi_before_ms"])
-
-    # ---------- TEST ----------
-
-    def get_test_psi(self, test_type: str, stimulus_index: int) -> int:
-        return self.test_design.get_psi(test_type, stimulus_index)
+    def get_test_psi(self, test_type: str, test_index: int) -> int:
+        """
+        PSI перед test-стимулом.
+        """
+        return self.test_design.get_psi(
+            test_type=test_type,
+            stimulus_index=test_index,
+        )

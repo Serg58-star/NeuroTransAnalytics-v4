@@ -1,48 +1,51 @@
 # FILE: src/neurotransanalytics/data_adapter/builders/session_builder.py
 
-from dataclasses import dataclass
+from typing import List
+
+from ..models.session import Session
 
 
-@dataclass
-class Session:
-    session_id: int
-    test_type: str
-    test_length: int
-
-
-def build_sessions(boxbase_df):
+def build_sessions(boxbase_df) -> List[Session]:
     """
-    Строит список Session из boxbase.xlsx.
+    Построение Session из boxbase.xlsx.
 
-    Инвариант:
-    - идентификатор сессии = колонка 'cnt'
+    Инварианты v4:
+    - session_id берётся из колонки 'cnt'
+    - test_type определяется по наличию Tst1_*, Tst2_*, Tst3_* колонок
+    - warmup_variant НЕ фиксировался в данных:
+        -> задаётся детерминированно
+        -> в формате идентификатора Excel (например 'NU0')
     """
 
-    sessions = []
+    sessions: List[Session] = []
 
-    # ЖЁСТКО зафиксировано для boxbase.xlsx
-    grouped = boxbase_df.groupby("cnt")
+    session_ids = boxbase_df["cnt"].unique()
 
-    for cnt_value, df in grouped:
-        # тип теста определяется по наличию столбцов
-        if any(col.startswith("Tst1_") for col in df.columns):
+    for session_id in session_ids:
+        rows = boxbase_df[boxbase_df["cnt"] == session_id]
+        columns = rows.columns
+
+        # Определяем тип теста
+        if any(col.startswith("Tst1_") for col in columns):
             test_type = "Tst1"
-            test_length = 36
-        elif any(col.startswith("Tst2_") for col in df.columns):
+        elif any(col.startswith("Tst2_") for col in columns):
             test_type = "Tst2"
-            test_length = 36
-        elif any(col.startswith("Tst3_") for col in df.columns):
+        elif any(col.startswith("Tst3_") for col in columns):
             test_type = "Tst3"
-            test_length = 36
         else:
-            continue
-
-        sessions.append(
-            Session(
-                session_id=int(cnt_value),
-                test_type=test_type,
-                test_length=test_length,
+            raise ValueError(
+                f"Cannot determine test_type for session {session_id}"
             )
+
+        # Реальный warmup-вариант неизвестен → фиксируем допустимый
+        warmup_variant = "NU0"
+
+        session = Session(
+            session_id=session_id,
+            test_type=test_type,
+            warmup_variant=warmup_variant,
         )
+
+        sessions.append(session)
 
     return sessions

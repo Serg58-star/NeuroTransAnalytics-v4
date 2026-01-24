@@ -1,75 +1,89 @@
 # FILE: src/neurotransanalytics/data_adapter/builders/stimulus_builder.py
 
+from typing import List
+
 from ..models.stimulus_event import StimulusEvent
+from ..design.psi_provider import PSIProvider
 
 
 def build_stimulus_events(
     sessions,
-    psi_provider,
-    warmup_tables
-):
-    stimuli = []
-    stimulus_id = 1
+    warmup_design,
+    test_design,
+) -> List[StimulusEvent]:
+    """
+    Создание всех StimulusEvent (warmup + test).
 
-    # ВРЕМЕННО: фиксированный warmup-вариант
-    warmup_variant = "NU0"
+    На этом этапе:
+    - PSI полностью заполняется
+    - Для Tst1 test-стимулов добавляется:
+        * stimulus_color
+        * stimulus_location
+      из test_metadata_old.py
+    """
+
+    psi_provider = PSIProvider(
+        warmup_design=warmup_design,
+        test_design=test_design,
+    )
+
+    stimuli: List[StimulusEvent] = []
+    stimulus_event_id = 1
 
     for session in sessions:
         test_type = session.test_type
+        session_id = session.session_id
 
-        # ---------- WARMUP ----------
-        if test_type in warmup_tables:
-            df = warmup_tables[test_type]
+        # ------------------------------------------------------------
+        # Warmup-стимулы (без изменений)
+        # ------------------------------------------------------------
+        warmup_variant = session.warmup_variant
 
-            for order in (1, 2, 3):
-                psi = psi_provider.get_warmup_psi(
-                    test_type=test_type,
-                    variant=warmup_variant,
-                    order=order
-                )
-
-                row = df[
-                    (df["variant"] == warmup_variant) &
-                    (df["order"] == order)
-                ].iloc[0]
-
-                stimuli.append(
-                    StimulusEvent(
-                        stimulus_event_id=stimulus_id,
-                        session_id=session.session_id,
-
-                        stimulus_role="warmup",
-                        stimulus_index=order,
-
-                        psi_pre_ms=psi,
-                        psi_source="warmup_excel",
-
-                        warmup_variant=warmup_variant,
-                        warmup_order=order,
-
-                        stimulus_color=row.get("test_color"),
-                        stimulus_location=row.get("test_signal_position"),
-                        test_triple=row.get("test_triple"),
-                    )
-                )
-                stimulus_id += 1
-
-        # ---------- TEST ----------
-        for i in range(1, session.test_length + 1):
-            psi = psi_provider.get_test_psi(test_type, i)
-
-            stimuli.append(
-                StimulusEvent(
-                    stimulus_event_id=stimulus_id,
-                    session_id=session.session_id,
-
-                    stimulus_role="test",
-                    stimulus_index=i,
-
-                    psi_pre_ms=psi,
-                    psi_source="metadata",
-                )
+        for order in (1, 2, 3):
+            psi = psi_provider.get_warmup_psi(
+                test_type=test_type,
+                variant=warmup_variant,
+                order=order,
             )
-            stimulus_id += 1
+
+            stimulus = StimulusEvent(
+                stimulus_event_id=stimulus_event_id,
+                session_id=session_id,
+                stimulus_role="warmup",
+                stimulus_index=order,
+                psi_pre_ms=psi,
+                psi_source="config",
+            )
+
+            stimuli.append(stimulus)
+            stimulus_event_id += 1
+
+        # ------------------------------------------------------------
+        # Test-стимулы
+        # ------------------------------------------------------------
+        for stimulus_index in range(1, 37):
+            psi = psi_provider.get_test_psi(
+                test_type=test_type,
+                test_index=stimulus_index,
+            )
+
+            attrs = test_design.get_stimulus_attributes(
+                test_type=test_type,
+                stimulus_index=stimulus_index,
+            )
+
+            stimulus = StimulusEvent(
+                stimulus_event_id=stimulus_event_id,
+                session_id=session_id,
+                stimulus_role="test",
+                stimulus_index=stimulus_index,
+                psi_pre_ms=psi,
+                psi_source="metadata",
+                stimulus_color=attrs.get("stimulus_color"),
+                stimulus_location=attrs.get("stimulus_location"),
+            )
+
+            stimuli.append(stimulus)
+            stimulus_event_id += 1
 
     return stimuli
