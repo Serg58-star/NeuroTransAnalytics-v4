@@ -1,39 +1,42 @@
-Файл: docs/tasks/Editorial_Synchronization_Excel_to_SQLite.md
-
-Назначение: редакционная синхронизация документации
-Исполнитель: Google Antigravity (GoAn)
-Тип задачи: editorial-only (без изменения смысла)
-
-# Editorial Synchronization of NeuroTransAnalytics-v4 Documentation  
-## (Excel → SQLite)
+# Task 1 — Editorial Synchronization of Data Contracts  
+## NeuroTransAnalytics-v4 (Excel → SQLite)
 
 ---
 
 ## 1. Context
 
-The project **NeuroTransAnalytics-v4** has transitioned its primary data source  
+The project **NeuroTransAnalytics-v4** has transitioned its physical data storage  
 from **Excel-based files** to a **SQLite database (`neuro_data.db`)**.
 
-A consolidated set of documents located in:
+The documentation located in:
 
-docs/Consolidated documentation_in_v4/
-
-has already been **editorially adapted** to reflect this transition and represents the  
-**current semantic and methodological state** of the project documentation.
-
-However, the fragmented documentation located in:
-
-docs/
 docs/data_contracts/
 
-still contains outdated references to Excel-based data sources and requires  
-**editorial synchronization**.
+
+defines **data contracts**, field mappings, and storage assumptions used by:
+- ETL pipelines,
+- C3 computation,
+- scenario processing.
+
+These documents must be **editorially synchronized** to reflect SQLite as the canonical storage.
 
 ---
 
-## 2. Objective
+## 2. Scope (STRICT)
 
-Perform a **STRICTLY EDITORIAL synchronization** of documentation files.
+### Files in scope (ONLY):
+
+docs/data_contracts/RT_PSI_Data_Contract_v4.md
+docs/data_contracts/Маппинг_ полей_исходные Excel-файлы_SQLite_база_ neuro_data_db.md
+
+
+No other files or directories are included in this task.
+
+---
+
+## 3. Objective
+
+Perform a **STRICTLY EDITORIAL synchronization** of the data contract documents.
 
 This task is:
 - ✅ an editorial update,
@@ -41,153 +44,117 @@ This task is:
 - ❌ NOT a methodological revision,
 - ❌ NOT an architectural redesign.
 
-The goal is to align terminology and data-source references with the existing  
-SQLite-based implementation **without changing meaning**.
+The goal is to align terminology and references with the **SQLite-based storage**  
+while preserving **exact semantic meaning**.
 
 ---
 
-## 3. Source of Truth
+## 4. Source of Truth
 
-### Semantic / Methodological Reference (READ-ONLY)
+### Semantic Reference (READ-ONLY)
 
 docs/Consolidated documentation_in_v4/
 
 
-These documents define:
-- research logic,
-- architectural meaning,
-- interpretation boundaries.
+Use these documents ONLY to:
+- verify correct terminology,
+- confirm intended meaning.
+
+They must NOT be treated as rewrite targets or templates.
 
 ---
 
-### Target Files to Process
+## 5. Allowed Changes (ONLY)
 
-docs/
-docs/data_contracts/
+You MAY:
 
-
-These files must be synchronized **against the consolidated documentation**.
-
----
-
-## 4. Allowed Changes (ONLY)
-
-You MAY perform the following changes:
-
-- Replace references to **Excel files / sheets / tables**  
-  with **SQLite database / tables**.
-- Update terminology:
-  - “Excel table” → “SQLite table”
-  - “spreadsheet” → “database”
-- Align descriptions of:
-  - data flow,
-  - storage,
-  - ETL steps  
-  with a SQLite-based backend.
-- Fix outdated filenames, field names, or source references
-  **only when required by the Excel → SQLite transition**.
-- Apply minimal editorial corrections required for consistency.
+- Replace references to:
+  - Excel files,
+  - spreadsheets,
+  - sheets  
+  with SQLite equivalents **when referring to physical storage**.
+- Update field names **only where a direct mapping already exists**.
+- Clarify that `neuro_data.db` is the canonical storage.
+- Fix outdated references caused solely by the Excel → SQLite transition.
 
 ---
 
-## 5. Forbidden Changes (CRITICAL)
+## 6. Forbidden Changes (CRITICAL)
 
 You MUST NOT:
 
-- Change methodological meaning.
-- Introduce new concepts or interpretations.
-- Modify research logic or scenario definitions.
-- Alter architectural layer responsibilities.
-- Add or remove sections.
-- Rephrase text beyond what is strictly required for data-source alignment.
-- “Improve”, “clarify”, or “optimize” wording unless necessary for source correction.
+- Change or reinterpret methodological meaning.
+- Introduce new fields, metrics, or entities.
+- Remove or add sections.
+- Normalize or “improve” wording beyond storage alignment.
+- Apply global or mechanical replacements.
+- Infer mappings not explicitly defined.
 
-If a change may affect meaning, **STOP and ASK for confirmation**.
-
----
-
-## 6. Output Rules (VERY IMPORTANT)
-
-### 6.1. Do NOT modify original files in place
-
-Original files must remain unchanged.
+If a passage is ambiguous:
+- STOP
+- ASK for confirmation.
 
 ---
 
-### 6.2. Save edited versions to a new location
+## 7. Output Rules
+
+### 7.1. Do NOT modify original files
+
+Original files in `docs/data_contracts/` must remain unchanged.
+
+---
+
+### 7.2. Save synchronized versions here
 
 For each processed file:
 
-- Preserve the original filename.
-- Save the updated version to:
-
-docs/current_sqlite/
-
+docs/current_sqlite/<original_filename>
 
 Example:
 
-docs/11_1_C2_1_Data_Model_v4.md
-→ docs/current_sqlite/11_1_C2_1_Data_Model_v4.md
+docs/data_contracts/RT_PSI_Data_Contract_v4.md
+→ docs/current_sqlite/RT_PSI_Data_Contract_v4.md
+
 
 ---
 
-### 6.3. Legacy handling
+## 8. Editorial Report (MANDATORY)
 
-Original (unchanged) files may later be archived to:
-
-docs/legacy_excel/
-
-
-Do NOT move or delete files automatically.
-
----
-
-## 7. Verification & Reporting
-
-For each processed file, provide a **short editorial report** including:
+For EACH file, provide a short report:
 
 - File name
-- List of changes performed (bullet points)
+- List of editorial changes (bullet points)
 - Explicit confirmation:
   > “No methodological or semantic changes were made.”
 
 ---
 
-## 8. Mandatory Architectural Check
+## 9. Architectural Validation
 
-Before finalizing any changes:
+Before finalizing:
 
 - Invoke the **architecture-guardian** skill.
-- Ensure:
-  - no interpretation logic is introduced,
-  - no computation is implied in GUI or documentation,
-  - SQLite remains the canonical storage.
+- Confirm:
+  - SQLite is referenced as canonical storage.
+  - No interpretation logic is introduced.
+  - No computation is implied.
 
-If architectural or methodological ambiguity is detected:
+If any architectural risk is detected:
 - STOP
-- REQUEST clarification
+- REPORT
+- DO NOT PROCEED silently.
 
 ---
 
-## 9. Working Mode Requirements
+## 10. Working Mode
 
 - Use **Planning mode**.
 - Generate:
   - Task List
   - Implementation Plan
-- Await confirmation before proceeding if uncertainty arises.
+- Await confirmation before execution if uncertainty arises.
 
 ---
 
-## 10. Success Criteria
+End of Task 1.
 
-The task is considered successful if:
-
-- All processed documents are editor\-synchronized to SQLite.
-- Original files remain intact.
-- No semantic or methodological drift occurs.
-- Editorial reports confirm the above.
-
----
-
-End of task description.
