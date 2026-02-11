@@ -36,3 +36,30 @@ class DistributionStructureResult:
         "features of distributions and does not imply interpretation, "
         "diagnosis, or evaluation."
     )
+
+
+@dataclass
+class TemporalStructureResult:
+    """
+    Formal output of the Change-Point Detection procedure (Task 9).
+    
+    Contains structural changes in time-series data without interpretation.
+    """
+    procedure_version: str
+    procedure_name: str = "ChangePointDetection"
+    
+    # Core structural data
+    detected_change_points: List[int] = field(default_factory=list) # Indices of shifts
+    statistic_curve: List[float] = field(default_factory=list)       # Detection statistic
+    
+    # Provenance and reproducibility
+    input_parameters: Dict[str, Any] = field(default_factory=dict)
+    seed: int = 0
+    timestamp: str = ""
+    
+    # Mandatory Non-Interpretation Clause
+    non_interpretation_clause: str = (
+        "This procedure identifies structural changes in time-series data. "
+        "It is exploratory and descriptive, and does not imply interpretation "
+        "or evaluation."
+    )
