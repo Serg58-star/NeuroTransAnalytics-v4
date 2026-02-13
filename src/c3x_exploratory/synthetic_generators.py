@@ -49,3 +49,29 @@ def generate_mixture_distribution(
     
     else:
         raise ValueError(f"Unsupported number of modes: {modes}. Expected 1, 2, or 3.")
+def generate_time_series_with_shifts(
+    n_samples: int,
+    shifts: int,
+    magnitude: float,
+    seed: int
+) -> np.ndarray:
+    """
+    Generates a reproducible time-series with mean shifts.
+    
+    Args:
+        n_samples: Total number of data points.
+        shifts: Number of mean shifts to introduce.
+        magnitude: Absolute magnitude of the mean shifts.
+        seed: Random seed.
+    """
+    rng = np.random.default_rng(seed)
+    data = rng.standard_normal(n_samples)
+    
+    if shifts > 0:
+        # Divide into segments
+        segment_len = n_samples // (shifts + 1)
+        for i in range(1, shifts + 1):
+            # Apply shift to all subsequent points
+            data[i * segment_len:] += magnitude * (1 if i % 2 == 1 else -1)
+            
+    return data
