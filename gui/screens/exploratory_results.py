@@ -1,15 +1,19 @@
 """
 gui.screens.exploratory_results
 
-This module implements the Exploratory Results screen (C3.5).
-It provides a read-only interface for browsing and viewing C3.x artifacts.
+This module implements the Exploratory Results screen in PySide6.
+It provide a read-only interface for browsing and viewing C3.x artifacts.
 """
 
 import os
-from typing import List, Optional
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QListWidget, 
+    QLabel, QTextEdit, QScrollArea, QFrame, QSplitter
+)
+from PySide6.QtCore import Qt
+
 from src.c3x_exploratory.persistence import load_artifact, ARTIFACT_ROOT
 from src.shared.artifacts import DistributionStructureResult, TemporalStructureResult
-from src.c35_visualization.exploratory_adapters import get_distribution_plot_data, get_temporal_plot_data
 
 
 class ExploratoryResultsController:
@@ -21,22 +25,21 @@ class ExploratoryResultsController:
     def __init__(self, root_dir: str = ARTIFACT_ROOT):
         self.root_dir = root_dir
 
-    def list_procedures(self) -> List[str]:
+    def list_procedures(self) -> list[str]:
         """Lists available procedures based on existing artifact directories."""
         if not os.path.exists(self.root_dir):
             return []
         return [d for d in os.listdir(self.root_dir) if os.path.isdir(os.path.join(self.root_dir, d))]
 
-    def list_artifacts(self, procedure_name: str) -> List[str]:
+    def list_artifacts(self, procedure_name: str) -> list[str]:
         """Lists available JSON artifacts for a specific procedure, newest first."""
         proc_path = os.path.join(self.root_dir, procedure_name)
         if not os.path.exists(proc_path):
             return []
         files = [f for f in os.listdir(proc_path) if f.endswith(".json")]
-        # Sort by filename (which starts with ISO timestamp)
         return sorted(files, reverse=True)
 
-    def load_result(self, procedure_name: str, filename: str) -> Optional[object]:
+    def load_result(self, procedure_name: str, filename: str) -> object:
         """Loads a specific artifact via the persistence layer."""
         path = os.path.join(self.root_dir, procedure_name, filename)
         try:
@@ -46,43 +49,63 @@ class ExploratoryResultsController:
             return None
 
 
-class ExploratoryResultsView:
-    """
-    Mock View class demonstrating how the GUI layout interacts with the adapters.
-    Following Task 6 and Task 11 specifications.
-    """
+from gui.widgets.exploratory_widget import ExploratoryWidget
 
-    def __init__(self, controller: ExploratoryResultsController):
-        self.controller = controller
-        self.current_artifact = None
 
-    def display_artifact(self, procedure_name: str, filename: str):
-        """
-        Simulates the logic for displaying an artifact on screen.
-        """
-        artifact = self.controller.load_result(procedure_name, filename)
-        if not artifact:
+class ExploratoryResultsScreen(QWidget):
+    """
+    Functional PySide6 Screen for viewing exploratory results.
+    Strictly read-only as per Task 11, 13, and 13.1.
+    """
+    def __init__(self):
+        super().__init__()
+        self.controller = ExploratoryResultsController()
+        self.setup_ui()
+        self.refresh_procedures()
+
+    def setup_ui(self):
+        layout = QHBoxLayout(self)
+
+        # 1. Left Selection Column
+        selector_widget = QWidget()
+        selector_widget.setFixedWidth(300)
+        selector_layout = QVBoxLayout(selector_widget)
+        
+        selector_layout.addWidget(QLabel("1. Select Procedure:"))
+        self.proc_combo = QComboBox()
+        self.proc_combo.currentTextChanged.connect(self.refresh_artifacts)
+        selector_layout.addWidget(self.proc_combo)
+
+        selector_layout.addWidget(QLabel("2. Select Artifact:"))
+        self.art_list = QListWidget()
+        self.art_list.currentTextChanged.connect(self.on_artifact_selected)
+        selector_layout.addWidget(self.art_list)
+        
+        layout.addWidget(selector_widget)
+
+        # 2. Right Content Column (ExploratoryWidget handles viz/meta)
+        self.exploratory_widget = ExploratoryWidget(self)
+        layout.addWidget(self.exploratory_widget)
+
+    def refresh_procedures(self):
+        self.proc_combo.clear()
+        procs = self.controller.list_procedures()
+        self.proc_combo.addItems(procs)
+
+    def refresh_artifacts(self, procedure_name: str):
+        self.art_list.clear()
+        if not procedure_name:
             return
+        artifacts = self.controller.list_artifacts(procedure_name)
+        self.art_list.addItems(artifacts)
 
-        print(f"\n--- DISPLAYING ARTIFACT: {filename} ---")
+    def on_artifact_selected(self, filename: str):
+        if not filename:
+            self.exploratory_widget.clear_ui()
+            return
         
-        # 1. Provenance Panel Logic
-        print(f"[PROVENANCE PANEL]")
-        print(f"  Procedure: {artifact.procedure_name} (v{artifact.procedure_version})")
-        print(f"  Timestamp: {artifact.timestamp}")
-        print(f"  Parameters: {artifact.input_parameters}")
-        print(f"  CLAUSE: {artifact.non_interpretation_clause}")
-
-        # 2. Visualization Panel Logic (Adapter Call)
-        print(f"\n[VISUALIZATION PANEL]")
-        if isinstance(artifact, DistributionStructureResult):
-            plot_data = get_distribution_plot_data(artifact)
-            print(f"  Mode: Distribution Histogram (rendered from {len(plot_data['x_grid'])} points)")
-            print(f"  Highlights: {len(plot_data['peaks_x'])} detected peaks.")
-            
-        elif isinstance(artifact, TemporalStructureResult):
-            plot_data = get_temporal_plot_data(artifact)
-            print(f"  Mode: Time-Series Statistic (rendered from {len(plot_data['indices'])} points)")
-            print(f"  Highlights: {len(plot_data['change_points_x'])} detected change points.")
+        proc_name = self.proc_combo.currentText()
+        artifact = self.controller.load_result(proc_name, filename)
         
-        print(f"--- END DISPLAY ---\n")
+        # Dispatch to dedicated widget
+        self.exploratory_widget.display_artifact(artifact)

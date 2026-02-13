@@ -1,12 +1,11 @@
 """
-src.c35_visualization.exploratory_adapters
+gui.adapters.exploratory_adapters
 
 This module contains visualization adapters for C3.x exploratory artifacts.
-It maps structural findings to visual representations in a deterministic,
-read-only manner.
+Specifically relocated for the GUI layer.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 import numpy as np
 from src.shared.artifacts import DistributionStructureResult, TemporalStructureResult
 
@@ -14,34 +13,21 @@ from src.shared.artifacts import DistributionStructureResult, TemporalStructureR
 def get_distribution_plot_data(artifact: DistributionStructureResult) -> Dict[str, Any]:
     """
     Prepares data for plotting a distribution structure (Task 8/13).
-    
-    Returns a dictionary of plot-ready components.
     """
     return {
         "x_values": np.array(artifact.density_grid),
         "density_values": np.array(artifact.density_curve),
         "peak_positions": np.array(artifact.detected_peaks),
-        # Note: peaks_y is not required by Task 13 canvas but kept for internal if needed
-        "peaks_y": [float(np.interp(p, artifact.density_grid, artifact.density_curve)) for p in artifact.detected_peaks],
-        "label_x": "Value",
-        "label_y": "Density",
-        "title": f"Distribution Analysis (Modes: {artifact.number_of_modes})"
     }
 
 
 def get_temporal_plot_data(artifact: TemporalStructureResult) -> Dict[str, Any]:
     """
     Prepares data for plotting a temporal structure (Task 9/13).
-    
-    Returns a dictionary of plot-ready components.
     """
     indices = np.arange(len(artifact.statistic_curve))
-    
     return {
         "time_index": indices,
         "signal_values": np.array(artifact.statistic_curve),
         "change_points": np.array(artifact.detected_change_points),
-        "label_x": "Time Index",
-        "label_y": "Detection Statistic",
-        "title": f"Temporal Analysis (Change Points: {len(artifact.detected_change_points)})"
     }

@@ -1,8 +1,7 @@
 """
-NeuroTransAnalytics-v4
-
-This is the main entry point for the NeuroTransAnalytics-v4 application.
-No logic is defined at this scaffold stage.
+NeuroTransAnalytics-v4 Entry Point
 """
+from gui.app import run_app
 
-pass
+if __name__ == "__main__":
+    run_app()
