@@ -11,9 +11,9 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 
-from gui.widgets.matplotlib_canvas import MplCanvas
-from gui.widgets.parameter_panels import MultimodalityParams, ChangePointParams
-from gui.adapters.exploratory_adapters import get_distribution_plot_data, get_temporal_plot_data
+from src.gui.widgets.matplotlib_canvas import MplCanvas
+from src.gui.widgets.parameter_panels import MultimodalityParams, ChangePointParams
+from src.gui.adapters.exploratory_adapters import get_distribution_plot_data, get_temporal_plot_data
 from src.shared.artifacts import DistributionStructureResult, TemporalStructureResult
 from src.c35_visualization.exploratory_controller import ExploratoryController
 

@@ -52,7 +52,7 @@ class ExploratoryResultsController:
             return None
 
 
-from gui.widgets.exploratory_widget import ExploratoryWidget
+from src.gui.widgets.exploratory_widget import ExploratoryWidget
 
 
 class ExploratoryResultsScreen(QWidget):

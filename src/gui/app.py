@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QListWidget, QStackedWidget, QLabel, QFrame
 )
-from gui.screens.exploratory_results import ExploratoryResultsScreen
-from gui.scenario_viewer.a0_views import A0BaselineView, A0VariabilityView
+from src.gui.screens.exploratory_results import ExploratoryResultsScreen
+from src.gui.scenario_viewer.a0_views import A0BaselineView, A0VariabilityView
 
 
 class MainWindow(QMainWindow):
@@ -79,7 +79,7 @@ class MainWindow(QMainWindow):
 
     def apply_style(self):
         try:
-            with open("gui/style.css", "r", encoding="utf-8") as f:
+            with open("src/gui/style.css", "r", encoding="utf-8") as f:
                 self.setStyleSheet(f.read())
         except FileNotFoundError:
             pass

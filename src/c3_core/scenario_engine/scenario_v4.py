@@ -98,5 +98,5 @@ class ScenarioEngineV4:
                 # Sanitize name for filename (e.g. A0.0 -> A0_0)
                 safe_name = name.replace(".", "_")
                 path = os.path.join(output_dir, f"{safe_name}.parquet")
-                df.to_parquet(path, index=False)
+                df.to_parquet(path, engine="fastparquet", index=False)
                 print(f"Exported Scenario {name} to {path}")

@@ -8,8 +8,8 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QTableView, QLabel, QHeaderView, QFrame
 )
 from PySide6.QtCore import Qt
-from gui.table_model import ScenarioTableModel
-from gui.scenario_viewer.scenario_viewer import ScenarioLoader
+from src.gui.table_model import ScenarioTableModel
+from src.gui.scenario_viewer.scenario_viewer import ScenarioLoader
 import datetime
 
 class BaseScenarioView(QWidget):
@@ -52,9 +52,11 @@ class BaseScenarioView(QWidget):
     def refresh(self):
         df = self.loader.load_scenario(self.scenario_id)
         if df is not None:
+            print(f"Refreshing {self.scenario_id}: Loaded {len(df)} rows.")
             model = ScenarioTableModel(df)
             self.table_view.setModel(model)
         else:
+            print(f"Refreshing {self.scenario_id}: Failed to load data.")
             self.table_view.setModel(None)
 
 class A0BaselineView(BaseScenarioView):

@@ -1,43 +1,35 @@
-hrough
-less than a minute ago
-
-Review
-Walkthrough — NeuroTransAnalytics-v4 (End-to-End A0 Pipeline)
+Walkthrough — Parquet Restoration & Engine Stabilization (Task 23)
 🎯 Goal
-Implement and verify the full computational pipeline (C3) for A0 baseline scenarios, from raw SQLite data to interactive GUI visualization.
+Restore Parquet as the canonical derived-data format and resolve environment-specific instability encountered with pyarrow.
 
-🏗️ Computational Pipeline (C3.1 - C3.4)
-1. ETL (C3.1)
-Engine: 
-etl_v4.py
-Logic: Extracts 204,336 stimulus-response events from SQLite.
-QC: Technical flags for session counts (36), RT thresholds (>=135ms), and missing metadata.
-2. Component Timing (C3.2)
-Engine: 
-component_v4.py
-Logic: Deterministically calculates ΔV1 (baseline), ΔV4 (color), and ΔV5/MT (motion).
-3. QC & Aggregation (C3.3)
-Engine: 
-qc_aggregation_v4.py
-Logic: Robust statistics (Median, MAD, IQR) per session, excluding QC-flagged records.
-4. Scenario Engine (C3.4)
-Engine: 
-scenario_v4.py
-Focus: A0.0 Baseline Stability and A0.1 Variability Profile.
-Export: Persists results to Parquet in data/derived/scenarios/.
-🖥️ Visualization (C3.5)
-GUI Integration
-Views: Added dedicated screens for A0 scenarios in 
-a0_views.py
+🛠️ Root Cause & Solution
+1. The pyarrow Crash
+Diagnostics revealed that pyarrow 19.0.0 produced a silent process crash on read operations in the current Windows/Python 3.13.5 environment. This made it unsuitable as a stable engine for this project.
+
+2. Stabilization via fastparquet
+I identified and verified that fastparquet is stable and efficient in this environment. It was selected as the project's primary Parquet engine.
+
+🚀 Changes Made
+1. Engine Standardization
+Scenario Engine (C3.4): Reverted export logic from CSV back to Parquet, using engine="fastparquet".
+Scenario Loader (C3.5): Reverted load logic from CSV back to Parquet, using engine="fastparquet".
+Dependencies: Updated 
+requirements.txt
+ and documented the decision in 
+Dependency_Notes.md
 .
-Non-Interpretation: Strictly displays pre-calculated results without triggering computation.
-Metadata: Every view includes versioning and a mandatory technical disclaimer.
-✅ Verification
-Data Load: GUI successfully loads 1,886 aggregated Tst1 sessions.
-Disclaimer: "Exploratory representation. No interpretation." visible on all scenario screens.
-A0.0 Screenshot Simulation (Data Table):
+2. Fallback Removal
+All temporary CSV export and loading code has been removed.
+All temporary 
+.csv
+ files in data/derived/scenarios/ have been deleted.
+✅ Verification Results
+Row Count Verification
+The full pipeline (C3.1 → C3.4) was executed, and the resulting Parquet files were verified via the ScenarioLoader:
 
-subject_id	session_id	baseline_median	baseline_mad
-7	116	219.00	8.00
-7	1325	227.00	13.50
-Status: ALL SYSTEMS GO The NeuroTransAnalytics-v4 architecture is now fully functional for real-data baseline analysis.
+A0.0 loaded from Parquet: 1886 rows
+System Integrity
+No dual-format storage remains.
+The GUI correctly renders session data directly from Parquet files.
+The project strictly adheres to the canonical src layout.
+Status: ARCHITECTURALLY RESTORED The derived data layer now uses the intended Parquet format with a stabilized engine.
