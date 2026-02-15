@@ -84,3 +84,19 @@ class ScenarioEngineV4:
         res['variability_iqr'] = tst1['iqr_ΔV1']
         
         return res
+
+    def export_results(self, results: Dict[str, pd.DataFrame], output_dir: str):
+        """
+        Exports scenario results to Parquet files.
+        """
+        import os
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+            
+        for name, df in results.items():
+            if not df.empty:
+                # Sanitize name for filename (e.g. A0.0 -> A0_0)
+                safe_name = name.replace(".", "_")
+                path = os.path.join(output_dir, f"{safe_name}.parquet")
+                df.to_parquet(path, index=False)
+                print(f"Exported Scenario {name} to {path}")

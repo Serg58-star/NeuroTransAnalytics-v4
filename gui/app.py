@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QListWidget, QStackedWidget, QLabel, QFrame
 )
 from gui.screens.exploratory_results import ExploratoryResultsScreen
+from gui.scenario_viewer.a0_views import A0BaselineView, A0VariabilityView
 
 
 class MainWindow(QMainWindow):
@@ -41,9 +42,8 @@ class MainWindow(QMainWindow):
 
         self.nav_list = QListWidget()
         self.nav_list.addItem("Exploratory Results")
-        # Future items:
-        # self.nav_list.addItem("Scenario Computation")
-        # self.nav_list.addItem("Interpretation")
+        self.nav_list.addItem("Scenario: A0 Baseline")
+        self.nav_list.addItem("Scenario: A0 Variability")
         
         sidebar_layout.addWidget(self.nav_list)
         sidebar_layout.addStretch()
@@ -55,7 +55,12 @@ class MainWindow(QMainWindow):
         
         # Initialize Screens
         self.exploratory_screen = ExploratoryResultsScreen()
+        self.a0_baseline_view = A0BaselineView()
+        self.a0_variability_view = A0VariabilityView()
+        
         self.content_stack.addWidget(self.exploratory_screen)
+        self.content_stack.addWidget(self.a0_baseline_view)
+        self.content_stack.addWidget(self.a0_variability_view)
         
         self.main_layout.addWidget(self.content_stack)
 
@@ -67,6 +72,10 @@ class MainWindow(QMainWindow):
 
     def display_screen(self, index: int):
         self.content_stack.setCurrentIndex(index)
+        # Refresh view if it's a scenario view
+        current_widget = self.content_stack.currentWidget()
+        if hasattr(current_widget, 'refresh'):
+            current_widget.refresh()
 
     def apply_style(self):
         try:
