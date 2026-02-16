@@ -8,6 +8,7 @@ Initiates A0 baseline scenarios based on AggregatedFrame data.
 
 import pandas as pd
 from typing import Dict
+from src.c3_core.pipeline_config import PIPELINE_VERSIONS
 
 class ScenarioEngineV4:
     """
@@ -35,6 +36,9 @@ class ScenarioEngineV4:
         
         # Scenario A0.1
         results["A0.1"] = self.run_a0_1(df)
+
+        # Scenario A0.2
+        results["A0.2"] = self.run_a0_2(df)
         
         return results
 
@@ -50,10 +54,6 @@ class ScenarioEngineV4:
             return pd.DataFrame()
             
         # 2. Map fields to scenario structure
-        # baseline_median comes from median_ΔV1
-        # baseline_mad comes from mad_ΔV1
-        # baseline_iqr comes from iqr_ΔV1
-        
         res = tst1[[
             'subject_id', 'session_id', 'count_valid'
         ]].copy()
@@ -85,9 +85,45 @@ class ScenarioEngineV4:
         
         return res
 
+    def run_a0_2(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        A0.2 — Population Structures of ΔV1.
+        Aggregates session-level ΔV1 stats to subject-level structural profile.
+        """
+        # 1. Select Tst1 only
+        tst1 = df[df['test_type'] == 'Tst1'].copy()
+        if tst1.empty:
+            return pd.DataFrame()
+
+        # 2. Robust subject-level aggregation
+        # We group by subject_id and take median/mad/iqr of the session medians
+        def mad(x):
+            m = x.median()
+            return (x - m).abs().median()
+
+        def iqr(x):
+            return x.quantile(0.75) - x.quantile(0.25)
+
+        grouped = tst1.groupby('subject_id')
+        
+        sub_stats = grouped['median_ΔV1'].agg(['median', mad, iqr, 'count']).reset_index()
+        sub_stats.columns = ['subject_id', 'median_delta_v1_subject', 'mad_delta_v1_subject', 'iqr_delta_v1_subject', 'n_sessions']
+
+        # 3. Add Metadata from centralized registry
+        sub_stats['scenario_code'] = "A0.2"
+        sub_stats['scenario_version'] = PIPELINE_VERSIONS['scenario_version']
+        sub_stats['etl_version'] = PIPELINE_VERSIONS['etl_version']
+        sub_stats['component_algo_version'] = PIPELINE_VERSIONS['component_algo_version']
+        sub_stats['qc_version'] = PIPELINE_VERSIONS['qc_version']
+
+        # 4. Deterministic sorting (architectural requirement)
+        sub_stats = sub_stats.sort_values(by='subject_id').reset_index(drop=True)
+
+        return sub_stats
+
     def export_results(self, results: Dict[str, pd.DataFrame], output_dir: str):
         """
-        Exports scenario results to Parquet files.
+        Exports scenario results to Parquet files using fastparquet.
         """
         import os
         if not os.path.exists(output_dir):

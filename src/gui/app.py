@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QListWidget, QStackedWidget, QLabel, QFrame
 )
 from src.gui.screens.exploratory_results import ExploratoryResultsScreen
-from src.gui.scenario_viewer.a0_views import A0BaselineView, A0VariabilityView
+from src.gui.scenario_viewer.a0_views import A0BaselineView, A0VariabilityView, A0PopulationView
 
 
 class MainWindow(QMainWindow):
@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         self.nav_list.addItem("Exploratory Results")
         self.nav_list.addItem("Scenario: A0 Baseline")
         self.nav_list.addItem("Scenario: A0 Variability")
+        self.nav_list.addItem("Scenario: A0 Population Structure")
         
         sidebar_layout.addWidget(self.nav_list)
         sidebar_layout.addStretch()
@@ -57,10 +58,12 @@ class MainWindow(QMainWindow):
         self.exploratory_screen = ExploratoryResultsScreen()
         self.a0_baseline_view = A0BaselineView()
         self.a0_variability_view = A0VariabilityView()
+        self.a0_population_view = A0PopulationView()
         
         self.content_stack.addWidget(self.exploratory_screen)
         self.content_stack.addWidget(self.a0_baseline_view)
         self.content_stack.addWidget(self.a0_variability_view)
+        self.content_stack.addWidget(self.a0_population_view)
         
         self.main_layout.addWidget(self.content_stack)
 

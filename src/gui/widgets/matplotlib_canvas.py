@@ -5,6 +5,7 @@ Implements a PySide6-compatible Matplotlib canvas for rendering
 exploratory results without interpretation.
 """
 
+import pandas as pd
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
@@ -75,4 +76,32 @@ class MplCanvas(FigureCanvasQTAgg):
         self.axes.legend()
         self.axes.grid(True, linestyle=":", alpha=0.6)
         
+        self.draw()
+
+    def render_population_structure(self, df: pd.DataFrame):
+        """
+        Renders A0.2 Population Structure (Task 24).
+        Scatter (Median vs MAD) and Histogram of Medians.
+        """
+        self.fig.clear()
+        
+        # 1. Scatter Plot (Median vs MAD)
+        ax1 = self.fig.add_subplot(121)
+        ax1.scatter(df['median_delta_v1_subject'], df['mad_delta_v1_subject'], 
+                    alpha=0.6, color='#1f77b4', edgecolors='white')
+        ax1.set_title("Median vs MAD (ΔV1)")
+        ax1.set_xlabel("Median (ms)")
+        ax1.set_ylabel("MAD (ms)")
+        ax1.grid(True, linestyle=":", alpha=0.6)
+
+        # 2. Histogram (Median)
+        ax2 = self.fig.add_subplot(122)
+        ax2.hist(df['median_delta_v1_subject'], bins=15, 
+                 color='#2ca02c', alpha=0.7, edgecolor='black')
+        ax2.set_title("Median Distribution")
+        ax2.set_xlabel("Median (ms)")
+        ax2.set_ylabel("Frequency")
+        ax2.grid(True, linestyle=":", alpha=0.6)
+
+        self.fig.tight_layout()
         self.draw()
