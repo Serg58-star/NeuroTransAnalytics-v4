@@ -1,0 +1,68 @@
+======================================================================
+TASK 27.2 - PRE-LAUNCH REGRESSION VALIDATION REPORT
+======================================================================
+
+I. ΔV4 ~ ΔV1 Regression Analysis
+----------------------------------------------------------------------
+
+LEFT field:
+  N: 50
+  R²: 0.3136
+  Adjusted R²: 0.2993
+  Residual variance ratio: 0.6864
+  → Independent (R²=0.31 < 0.5)
+
+CENTER field:
+  N: 50
+  R²: 0.2224
+  Adjusted R²: 0.2062
+  Residual variance ratio: 0.7776
+  → Independent (R²=0.22 < 0.5)
+
+RIGHT field:
+  N: 50
+  R²: 0.2519
+  Adjusted R²: 0.2363
+  Residual variance ratio: 0.7481
+  → Independent (R²=0.25 < 0.5)
+
+II. ΔV5 ~ ΔV1 Regression Analysis
+----------------------------------------------------------------------
+
+LEFT field:
+  N: 50
+  R²: 0.1028
+  Adjusted R²: 0.0841
+  Residual variance ratio: 0.8972
+  → Independent (R²=0.10 < 0.5)
+
+CENTER field:
+  N: 50
+  R²: 0.2478
+  Adjusted R²: 0.2322
+  Residual variance ratio: 0.7522
+  → Independent (R²=0.25 < 0.5)
+
+RIGHT field:
+  N: 50
+  R²: 0.0263
+  Adjusted R²: 0.0060
+  Residual variance ratio: 0.9737
+  → Independent (R²=0.03 < 0.5)
+
+III. PSI Tau Correlations
+----------------------------------------------------------------------
+tau_vs_dv1_left: r=0.0474, p=0.7438, n=50
+tau_vs_dv1_center: r=-0.0691, p=0.6334, n=50
+tau_vs_dv1_right: r=-0.0318, p=0.8263, n=50
+partial_tau_vs_dv1_left: r=0.2474, p=0.0832, n=50
+→ Independent from baseline speed (max |r|=0.25)
+
+IV. Asymmetry Redundancy Check
+----------------------------------------------------------------------
+Correlation (abs vs rel): r=0.7060
+→ Both metrics useful (r=0.706)
+
+======================================================================
+END OF REGRESSION VALIDATION REPORT
+======================================================================

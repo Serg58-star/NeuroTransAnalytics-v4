@@ -105,3 +105,37 @@ class MplCanvas(FigureCanvasQTAgg):
 
         self.fig.tight_layout()
         self.draw()
+
+    def render_symmetry_structure(self, df: pd.DataFrame):
+        """
+        Renders A0.3 Architectural Symmetry (Task 25).
+        Scatter (Diff L-R vs Center) and Boxplot of Medians.
+        """
+        self.fig.clear()
+        
+        # 1. Scatter Plot (Diff Left-Right vs Median Center)
+        ax1 = self.fig.add_subplot(121)
+        ax1.scatter(df['diff_left_right'], df['median_center'], 
+                    alpha=0.6, color='#9467bd', edgecolors='white')
+        ax1.set_title("Symmetry vs Central Field")
+        ax1.set_xlabel("Diff Left - Right (ms)")
+        ax1.set_ylabel("Median Center (ms)")
+        ax1.axvline(x=0, color='black', linestyle='--', alpha=0.3)
+        ax1.grid(True, linestyle=":", alpha=0.6)
+
+        # 2. Boxplot (Left, Center, Right)
+        ax2 = self.fig.add_subplot(122)
+        box_data = [
+            df['median_left'].dropna(),
+            df['median_center'].dropna(),
+            df['median_right'].dropna()
+        ]
+        ax2.boxplot(box_data, labels=['Left', 'Center', 'Right'], 
+                    patch_artist=True, 
+                    boxprops=dict(facecolor='#ff7f0e', alpha=0.7))
+        ax2.set_title("Spatial Distribution")
+        ax2.set_ylabel("Median ΔV1 (ms)")
+        ax2.grid(True, linestyle=":", alpha=0.6)
+
+        self.fig.tight_layout()
+        self.draw()

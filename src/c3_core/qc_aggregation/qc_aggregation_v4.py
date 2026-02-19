@@ -45,8 +45,8 @@ class QCAggregationV4:
             return x.quantile(0.75) - x.quantile(0.25)
 
         # 3. Grouping
-        # subject_id and session_id are usually enough, but test_type is critical
-        group_cols = ['subject_id', 'session_id', 'test_type']
+        # subject_id, session_id, and stimulus_location are needed for symmetry analysis
+        group_cols = ['subject_id', 'session_id', 'test_type', 'stimulus_location']
         val_cols = ['rt_ms', 'ΔV1', 'ΔV4', 'ΔV5_MT']
         
         # 4. Aggregate
@@ -83,7 +83,7 @@ class QCAggregationV4:
         
         # Final column reordering for readability
         ordered_cols = [
-            'subject_id', 'session_id', 'age', 'sex', 'test_type', 'count_valid',
+            'subject_id', 'session_id', 'age', 'sex', 'test_type', 'stimulus_location', 'count_valid',
             'median_rt_ms', 'mad_rt_ms', 'iqr_rt_ms',
             'median_ΔV1', 'mad_ΔV1', 'iqr_ΔV1',
             'median_ΔV4', 'mad_ΔV4', 'iqr_ΔV4',
@@ -97,7 +97,7 @@ class QCAggregationV4:
 
     def _create_empty_aggregated_frame(self) -> pd.DataFrame:
         cols = [
-            'subject_id', 'session_id', 'age', 'sex', 'test_type', 'count_valid',
+            'subject_id', 'session_id', 'age', 'sex', 'test_type', 'stimulus_location', 'count_valid',
             'median_rt_ms', 'mad_rt_ms', 'iqr_rt_ms',
             'median_ΔV1', 'mad_ΔV1', 'iqr_ΔV1',
             'median_ΔV4', 'mad_ΔV4', 'iqr_ΔV4',
