@@ -1,62 +1,61 @@
-Task 25.3 — Spatial Refactor (A0.0, A0.1) - Revised Plan
-I have updated the implementation plan based on the mandatory requirements specified in the "Amendment to Implementation Plan — Task 25.3".
+Implementation Plan
+1 minute ago
 
-Revised Strategy:
-Mandatory Spatial Breakdown: A0.0 and A0.1 will now strictly avoid spatial collapsing or averaging. They will provide field-specific analytical columns (Left, Center, Right) per session.
-Triad Integrity Verification: Before pivoting, the engine will verify that each session has the complete set of locations (left, center, right). Any missing field will trigger a ValueError.
-Complete Metadata Purity: In addition to moving version fields out of Parquet, I will also remove the scenario_code column from all A0.x artifacts.
-Internal Versioning: scenario_version will be bumped to v4.0.3 for logging purposes but will not appear in the resulting data.
-Please review the updated 
-implementation_plan.md
-. Once approved, I will proceed with the execution.
+Review
+Отчёт о стратегическом плане для Stage 1 (Task 29)
+Данный документ описывает технический план реализации Этапа 1 эксплоративного анализа на основе Exploratory Architecture Framework v4.md и инструкций Task 29.
 
-Implementation Plan — Task 25.3: Spatial Refactor (A0.0, A0.1)
-Refactoring A0.0 and A0.1 to use a spatially-extended structure and enforcing strict field integrity across the A0-block.
+1. Повторное использование модулей
+Анализ существующей архитектуры exploratory_lab показал:
+
+Доступ к данным и расчет 11 базовых признаков (TrialLevelDataLoader, BaselineFeatureExtractor) переиспользуются без изменений.
+В скриптах 
+scripts/run_bootstrap_stability.py
+ и 
+scripts/run_pca_split_half.py
+ уже реализованы функции 
+pca_metrics()
+, 
+run_bootstrap()
+ и 
+run_split_half()
+. Сейчас они захардкожены в скриптах.
+Решение: Для соблюдения DRY и архитектурной чистоты мы извлечем эти функции в новый модуль src/exploratory_lab/geometry/stability.py.
+Метрики 
+Dim
+, PC1%, Participation Ratio штатно извлекаются из PCA (
+pca_metrics
+).
+2. Расширение функций
+Будет добавлен новый функционал:
+
+Расчёт Between/Within дисперсии: будет реализован как утилита, которая вычисляет отношение межсубъектной дисперсии к внутрисубъектной дисперсии по PC1.
+Процедура Box-Cox оптимизации (scipy.stats.boxcox) с сохранением $\lambda$.
+3. Архитектурные изменения: новый Pipeline
+Согласно шаблону исследовательских процедур (exploratory-procedure-template), будет создан новый скрипт конвейера:
+
+Файл: src/exploratory_lab/pipelines/stage1_scale_invariance.py
+Pipeline загрузит признаки (production-набор, мы возьмем расширенный набор из 7 признаков, на котором была установлена стабильная 2D структура в задаче 27, либо 11 базовых — ожидаю уточнения от пользователя). Далее Pipeline применит по очереди 5 трансформаций:
+
+Log-transform: np.log(X + epsilon)
+Box-Cox: поиск $\lambda$ раздельно по векторам
+Rank-based: замена значений рангами (scipy.stats.rankdata) по всей выборке
+Z-score within subject: StandardScaler сгруппированный по subject_id
+Z-score within test: StandardScaler, сгруппированный по исходным тестам (Tst1, Tst2, Tst3) до агрегации (потребует маппинга на сырые данные, либо использования промежуточного DataFrame).
+Для каждого состояния мы прогоняем стандартизированный набор stability_metrics (PCA, Bootstrap SD, Split-half, B/W).
 
 User Review Required
 IMPORTANT
 
-No Spatial Collapse: A0.0 and A0.1 will now mirror A0.3 by providing per-field columns (Left, Center, Right) instead of session-level averages. Triad Integrity Check: The pipeline will now fail fast (ValueError) if any session lacks a complete triad of visual fields (left, center, right). No zero-filling or averaging allowed. Metadata Removal: The scenario_code column will be removed from all parquet artifacts (A0.0–A0.3).
+Уточнение набора признаков. В Task 29 указано "Используется текущий production-набор признаков, на котором ранее была подтверждена двумерная структура". Подразумевается ли использование 7 признаков (Core residuals + Asym + PSI tau), как в проверках 
+run_bootstrap_stability.py
+ (где структура стабильна), или исходных 11 базовых признаков (
+baseline_features.py
+)?
 
-Proposed Changes
-[Scenario Engine (C3.4)]
-[MODIFY] 
-scenario_v4.py
-A0.0 (Baseline Stability):
-Add location triad check for each session.
-Implement strict pivot mapping for median_ΔV1, mad_ΔV1, iqr_ΔV1, and count_valid.
-Columns: median_{left|center|right}, mad_{left|center|right}, etc.
-A0.1 (Variability Profile):
-Add location triad check for each session.
-Implement strict pivot mapping for mad_ΔV1 and iqr_ΔV1.
-Columns: variability_mad_{left|center|right}, variability_iqr_{left|center|right}.
-A0.2 & A0.3:
-Remove scenario_code assignment.
-Fail-fast Logic:
-Validate stimulus_location presence.
-Verify 
-set(group['stimulus_location']) == {'left', 'center', 'right'}
- before pivot.
-[MODIFY] 
-pipeline_config.py
-Bump scenario_version to scenario_v4.0.3 (Internal logging only).
-[GUI Visualizations (C3.5)]
-[MODIFY] 
-a0_views.py
-Update 
-A0BaselineView
- and 
-A0VariabilityView
- to display the new spatial columns. Version fields already excluded.
-Verification Plan
-Automated Tests
-Pipeline Execution: Run 
-prepare_scenarios.py
-.
-Triad Validation: Verify it raises ValueError if we manually delete a field from a session.
-Parquet Audit:
-Confirm NO scenario_code in any A0 file.
-Confirm full spatial breakdown in A0_0 and A0_1.
-Manual Verification
-Open GUI tabs for Baseline and Variability.
-Confirm spatial breakdown is correctly displayed in tables.
+Уточнение Z-нормировки внутри теста. Для этой трансформации (29.5) необходимо нормировать до агрегации на уровень субъекта (поскольку Tst1, Tst2, Tst3 существуют на уровне trial-level data). План: выполнить нормировку массивов RT внутри TrialLevelDataLoader на уровне испытаний, а затем стандартным образом пропустить через BaselineFeatureExtractor. Это корректно?
+
+4. Verification Plan
+Выполнение stage1_scale_invariance.py должно завершиться корректно и сформировать Task_29_Stage1_Report.md.
+Отчет будет содержать сравнительную таблицу со всеми столбцами (Dim, PC1%, PR, SD, ΔPC1, B/W).
+Я проверю соответствие табличных результатов критериям закрытия Stage 1 и зафиксирую вывод в отчете.

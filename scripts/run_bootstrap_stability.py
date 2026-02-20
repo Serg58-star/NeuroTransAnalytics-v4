@@ -18,6 +18,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from exploratory_lab.feature_engineering.baseline_features import BaselineFeatureExtractor
+from exploratory_lab.geometry.stability import pca_metrics, run_bootstrap
 
 
 # ============================================================================
@@ -168,48 +169,9 @@ def reconstruct_residuals(features_df, linear_csv):
 
 
 # ============================================================================
-# BOOTSTRAP PCA
+# BOOTSTRAP PCA (Imported from stability module)
 # ============================================================================
 
-def pca_metrics(data: np.ndarray) -> dict:
-    """Run PCA on z-scored data, return key metrics."""
-    scaler = StandardScaler()
-    data_std = scaler.fit_transform(data)
-    cov = np.cov(data_std, rowvar=False)
-    eigenvalues = np.sort(np.linalg.eigvalsh(cov))[::-1]
-
-    total = np.sum(eigenvalues)
-    var_exp = eigenvalues / total
-    cum_var = np.cumsum(var_exp)
-
-    p = eigenvalues / total
-    p_safe = p[p > 0]
-    pr = (total ** 2) / np.sum(eigenvalues ** 2)
-    er = np.exp(-np.sum(p_safe * np.log(p_safe)))
-
-    return {
-        'pc1_pct': var_exp[0] * 100,
-        'pc2_pct': var_exp[1] * 100 if len(var_exp) > 1 else 0.0,
-        'cumul_pc12_pct': cum_var[1] * 100 if len(cum_var) > 1 else cum_var[0] * 100,
-        'n_lambda_gt1': int(np.sum(eigenvalues > 1.0)),
-        'participation_ratio': pr,
-        'effective_rank': er,
-    }
-
-
-def run_bootstrap(data: np.ndarray, n_iter: int, rng: np.random.Generator) -> pd.DataFrame:
-    """Run n_iter bootstrap iterations, return DataFrame of metrics."""
-    n = data.shape[0]
-    records = []
-    for i in range(n_iter):
-        idx = rng.integers(0, n, size=n)
-        sample = data[idx]
-        try:
-            m = pca_metrics(sample)
-            records.append(m)
-        except Exception:
-            continue
-    return pd.DataFrame(records)
 
 
 # ============================================================================
