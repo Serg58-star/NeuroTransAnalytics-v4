@@ -1,0 +1,92 @@
+{
+    "cohorts": [
+        {
+            "Cohort": "Quartile_Q1 (Youngest)",
+            "N": 371,
+            "Hopkins": 0.9311778085552298,
+            "Peak_Silhouette": 0.5718712641905168,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 9.250083215200778,
+            "Participation_Ratio": 2.0428124871363034
+        },
+        {
+            "Cohort": "Quartile_Q2",
+            "N": 370,
+            "Hopkins": 0.9372354640384934,
+            "Peak_Silhouette": 0.32702496332859143,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 4.761896309202122,
+            "Participation_Ratio": 2.333824214150216
+        },
+        {
+            "Cohort": "Quartile_Q3",
+            "N": 370,
+            "Hopkins": 0.9549975437389854,
+            "Peak_Silhouette": 0.3124973561053141,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 4.156283814143851,
+            "Participation_Ratio": 2.345862846520188
+        },
+        {
+            "Cohort": "Quartile_Q4 (Oldest)",
+            "N": 371,
+            "Hopkins": 0.9948792914988143,
+            "Peak_Silhouette": 0.31203408540088884,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 5.596306033726742,
+            "Participation_Ratio": 2.1827254942467453
+        },
+        {
+            "Cohort": "Decade_<30",
+            "N": 430,
+            "Hopkins": 0.9308551734960762,
+            "Peak_Silhouette": 0.59690482670505,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 9.145042712641652,
+            "Participation_Ratio": 2.0440825380750898
+        },
+        {
+            "Cohort": "Decade_30-39",
+            "N": 264,
+            "Hopkins": 0.9336118240083298,
+            "Peak_Silhouette": 0.32308840948351325,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 4.8731616665806685,
+            "Participation_Ratio": 2.3286711784917067
+        },
+        {
+            "Cohort": "Decade_40-49",
+            "N": 251,
+            "Hopkins": 0.9461425856976882,
+            "Peak_Silhouette": 0.2977862273447611,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 4.3528911112103525,
+            "Participation_Ratio": 2.3515915789527453
+        },
+        {
+            "Cohort": "Decade_50-59",
+            "N": 261,
+            "Hopkins": 0.9936546809392647,
+            "Peak_Silhouette": 0.31501934946040394,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 5.9452387603342105,
+            "Participation_Ratio": 1.9968212663872464
+        },
+        {
+            "Cohort": "Decade_60+",
+            "N": 276,
+            "Hopkins": 0.9473038949193351,
+            "Peak_Silhouette": 0.32768952852930666,
+            "Gap_Optimal_k": 1,
+            "Anisotropy": 4.77409526815258,
+            "Participation_Ratio": 2.3130022395065954
+        }
+    ],
+    "regression": {
+        "slope": 0.00169303545004497,
+        "p_value": 0.39149342514740393,
+        "r_squared": 0.02837867691429674,
+        "windows_analyzed": 28
+    },
+    "verdict": "AGE_INVARIANT_CONTINUUM"
+}

@@ -1,0 +1,43 @@
+{
+    "standardization": {
+        "Raw (4D)": 0.9955595701812385,
+        "Z-Norm (4D)": 0.9962009489962231,
+        "MinMax (4D)": 0.9953481388285579,
+        "PCA Space (Stage 7 Base)": 0.9908418588369405,
+        "Whitened PCA (Isotropic)": 0.9924756831071001
+    },
+    "bounding_box": {
+        "Box Volume": 4210.379801295301,
+        "Hull Volume": 925.8555227735311,
+        "Hull/Box Ratio": 0.2198983385034995,
+        "H (Box Sampling)": 0.9908418588369405,
+        "H (Hull Sampling)": 0.9862284719654101
+    },
+    "outliers": {
+        "Outliers Removed (99th pct)": 53,
+        "H (Pre-removal)": 0.9908418588369405,
+        "H (Clean)": 0.9773843304095304
+    },
+    "ellipsoidal": {
+        "lambda_1": 2.2636253654051632,
+        "lambda_2": 1.169026075833193,
+        "lambda_3": 0.3466573131338775,
+        "lambda_1 / lambda_3 Ratio": 6.529864736700289,
+        "H (Whitened Sphere)": 0.9924756831065586
+    },
+    "edge": {
+        "Empirical Edge Density (%)": 0.33738191632928477,
+        "Uniform Expected Edge (%)": 27.09999999999999
+    },
+    "sampling": {
+        "Mean H": 0.9929370713569299,
+        "Std H": 0.007288545739138872,
+        "Min H": 0.9717953182546369,
+        "Max H": 0.9997710741795436
+    },
+    "synthetic": {
+        "Uniform Box 3D": 0.5075467584012034,
+        "Elongated Ellipsoid (10:1 ratio)": 0.9534068205511091,
+        "Gradient Cloud": 0.9951345660950328
+    }
+}
