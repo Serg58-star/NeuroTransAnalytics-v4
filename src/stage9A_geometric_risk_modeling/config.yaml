@@ -1,0 +1,11 @@
+# stage9A_geometric_risk_modeling configuration
+
+dataset:
+    n_samples: 1000
+    base_seed: 42
+    
+experiments:
+    bootstrap_iterations: 100
+    noise_levels:
+        - 0.05  # 5% SD
+        - 0.10  # 10% SD
