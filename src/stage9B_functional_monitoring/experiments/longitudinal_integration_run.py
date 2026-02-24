@@ -148,6 +148,8 @@ def run_integration(noise_level=0.0):
     
     df_long = df_real_fluct[df_real_fluct['Subject_ID'].isin(longitudinal_subjects)].copy()
     
+
+    
     print(f"Total subjects meeting longitudinal criteria (>= 3 sessions): {len(longitudinal_subjects)}")
     
     # 2. EVALUATE THROUGH STAGE 9B CLASSIFIERS

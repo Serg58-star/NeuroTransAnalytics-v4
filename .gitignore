@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+error.log
+out.txt
+data/processed/
