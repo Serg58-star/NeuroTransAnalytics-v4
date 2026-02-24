@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "C:\NeuroTransAnalytics-v4\src\stage9C_population_longitudinal_geometry_audit\population_audit_run.py", line 149, in <module>
+    generate_audit_report()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\NeuroTransAnalytics-v4\src\stage9C_population_longitudinal_geometry_audit\population_audit_run.py", line 31, in generate_audit_report
+    locked_mu = np.zeros(3)
+                ^^
+UnboundLocalError: cannot access local variable 'np' where it is not associated with a value

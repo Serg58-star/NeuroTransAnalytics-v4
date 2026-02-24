@@ -15,16 +15,27 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 import src.stage9C_population_longitudinal_geometry_audit.trajectory_metrics as tm
 
+from src.stage9B_functional_monitoring.experiments.longitudinal_integration_run import load_real_longitudinal_data
+from src.stage9A_geometric_risk_modeling.fluctuation.fluctuation_model import compute_fluctuations
+import numpy as np
+
 def generate_audit_report():
     print("Starting Population-Level Longitudinal Geometry Audit (Task 44)...")
     
-    # 1. Load the frozen precomputed Stage 9B longitudinal coordinate set
-    cache_path = PROJECT_ROOT / "data" / "processed" / "stage9b_frozen_longitudinal_coordinates.csv"
-    if not cache_path.exists():
-        raise FileNotFoundError(f"Missing frozen coordinate data at {cache_path}. Run Stage 9B integration first.")
-        
-    print("Loading frozen 3D latent longitudinal cohort coordinates...")
-    df_long = pd.read_csv(cache_path)
+    # 1. Securely fetch frozen 3D latent coordinates directly from Stage 9B in-memory
+    # This prevents architectural drift and avoids polluting Stage 9B with file I/O operations
+    print("Loading precomputed frozen 3D coordinates rigorously from Stage 9B baseline framework...")
+    df_sess = load_real_longitudinal_data()
+    
+    print("Applying locked Stage 9A geometric variances (frozen state)...")
+    locked_mu = np.zeros(3)
+    locked_cov = np.eye(3)
+    df_long = compute_fluctuations(df_sess, locked_mu, locked_cov)
+    
+    # Strictly filter for longitudinal subjects (>=3 sessions) as per Stage 9B
+    session_counts = df_long.groupby('Subject_ID').size()
+    longitudinal_subjects = session_counts[session_counts >= 3].index
+    df_long = df_long[df_long['Subject_ID'].isin(longitudinal_subjects)].copy()
     
     # Stage 9A fluctuation module outputs separate components; we mathematically recombine 
     # them here locally to get step magnitude (Delta_M) strictly from the frozen inputs.

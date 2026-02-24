@@ -148,10 +148,7 @@ def run_integration(noise_level=0.0):
     
     df_long = df_real_fluct[df_real_fluct['Subject_ID'].isin(longitudinal_subjects)].copy()
     
-    # Cache frozen coordinates for Stage 9C consumption
-    cache_dir = PROJECT_ROOT / "data" / "processed"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    df_long.to_csv(cache_dir / "stage9b_frozen_longitudinal_coordinates.csv", index=False)
+
     
     print(f"Total subjects meeting longitudinal criteria (>= 3 sessions): {len(longitudinal_subjects)}")
     
