@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from typing import Dict, List, Optional, Tuple
+from typing import Dict
 
 def compute_robust_layer(trials_df: pd.DataFrame) -> Dict[str, Dict[str, float]]:
     """
@@ -85,6 +85,50 @@ def compute_robust_z_layer(robust_space: Dict[str, Dict[str, float]]) -> Dict[st
                 z_space[ch][pos] = np.nan
                 
     return z_space
+
+def compute_anchored_z_layer(robust_space_f2: Dict[str, Dict[str, float]], robust_space_f1: Dict[str, Dict[str, float]]) -> Dict[str, Dict[str, float]]:
+    """
+    Level II.5 (Dynamic Mode): Computes the Anchored Standardization Z-Layer (Task 52A Amendment).
+    Projects Phase 2 (Load) data using Phase 1 (Baseline) standardizer anchors.
+    Z_{X,F2}^{anchored} = (X_{F2} - median(X_{L,F1}, X_{C,F1}, X_{R,F1})) / MAD_{X,F1}
+    
+    Arguments:
+    - robust_space_f2: The Phase 2 (Load) raw medians.
+    - robust_space_f1: The Phase 1 (Baseline) raw medians and MADs.
+    
+    Returns:
+    - Nested dict representing the Phase 2 dimensionless Z-Space coordinates anchored to F1.
+    """
+    positions = ['L', 'C', 'R']
+    z_space_anchored = {}
+    
+    for ch, data_f2 in robust_space_f2.items():
+        z_space_anchored[ch] = {}
+        data_f1 = robust_space_f1[ch]
+        
+        # Extract Phase 1 global center median
+        medians_f1 = [data_f1[pos]['median'] for pos in positions if not np.isnan(data_f1[pos]['median'])]
+        if not medians_f1:
+            for pos in positions:
+                z_space_anchored[ch][pos] = np.nan
+            continue
+            
+        global_ch_median_f1 = np.median(medians_f1)
+        
+        for pos in positions:
+            val_f2 = data_f2[pos]['median']
+            mad_f1 = data_f1[pos]['mad']
+            
+            # Use a tiny epsilon to prevent DivisionByZero if MAD is exactly 0
+            safe_mad_f1 = mad_f1 if mad_f1 > 1e-6 else 1.0 
+            
+            if not np.isnan(val_f2) and not np.isnan(mad_f1):
+                z_score = (val_f2 - global_ch_median_f1) / safe_mad_f1
+                z_space_anchored[ch][pos] = z_score
+            else:
+                z_space_anchored[ch][pos] = np.nan
+                
+    return z_space_anchored
 
 def apply_local_donders(robust_space: Dict[str, Dict[str, float]], base_channel: str = 'V1') -> Dict[str, Dict[str, float]]:
     """
