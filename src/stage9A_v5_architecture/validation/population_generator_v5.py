@@ -110,9 +110,64 @@ def generate_z_space_population(n_subjects: int = 150, return_phase2: bool = Fal
         return np.array(population_z_rows_f1), np.array(population_z_rows_f2)
     return np.array(population_z_rows_f1)
 
+def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5):
+    """
+    Generates a longitudinal population matrix Z in R^{N x Timepoints x 12}.
+    Data is dynamically anchored to t=0 (baseline geometric state).
+    Timepoints evolve systemically: fatigue cumulates gently at each step.
+    """
+    population_z_longitudinal = []
+    
+    for subj in range(n_subjects):
+        base_speed = np.random.normal(250, 40)
+        variance_multiplier = max(0.5, np.random.normal(1.0, 0.3))
+        
+        burst_prob_base = np.random.uniform(0.01, 0.05)
+        
+        # Systemic load accumulators
+        fatigue_shift_rate = np.random.normal(8.0, 2.0)
+        fatigue_spread_rate = np.random.normal(1.1, 0.05)
+        
+        subject_timepoints = []
+        robust_f1 = None
+        
+        def _to_flat_array(z_space):
+            row = []
+            for ch in ['V1', 'Parvo', 'Magno', 'Koniocellular']:
+                for pos in ['L', 'C', 'R']:
+                    row.append(z_space[ch][pos])
+            return row
+            
+        for t in range(timepoints):
+            if t == 0:
+                # Phase 1: Baseline Generation
+                df_trials = generate_subject_trials(subj, base_speed, variance_multiplier, is_phase2=False, burst_prob=burst_prob_base)
+                robust_f1 = compute_robust_layer(df_trials)
+                z_space = compute_robust_z_layer(robust_f1)
+                subject_timepoints.append(_to_flat_array(z_space))
+            else:
+                # Phase 2: Cumulative Load Evaluation
+                t_shift = fatigue_shift_rate * t
+                t_spread = fatigue_spread_rate ** t
+                t_burst = min(0.4, burst_prob_base + (0.02 * t)) # Bursting slowly rises
+                
+                df_trials = generate_subject_trials(subj, base_speed, variance_multiplier, is_phase2=True, burst_prob=t_burst, fatigue_shift=t_shift, fatigue_spread=t_spread)
+                robust_load = compute_robust_layer(df_trials)
+                
+                # Dynamic Anchoring to t=0 Medians and MADs
+                z_space = compute_anchored_z_layer(robust_load, robust_f1)
+                subject_timepoints.append(_to_flat_array(z_space))
+                
+        population_z_longitudinal.append(subject_timepoints)
+        
+    return np.array(population_z_longitudinal)
+
 if __name__ == "__main__":
     np.random.seed(42)
     Z = generate_z_space_population(150)
     print(f"Generated Z-Space Population: {Z.shape}")
     print("Sample Subject 1 Z-scores:")
     print(np.round(Z[0], 2))
+    
+    Z_long = generate_longitudinal_population(5, 5)
+    print(f"Generated Longitudinal Population: {Z_long.shape}")
