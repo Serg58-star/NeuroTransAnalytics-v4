@@ -11,24 +11,27 @@ from src.stage9A_v5_architecture.validation.population_generator_v5 import gener
 from src.stage9A_v5_architecture.validation.task_51_severity_calibration import Task51SeverityCalibration
 
 class Task9BLongitudinalMonitoring:
-    def __init__(self, n_subjects: int = 300, timepoints: int = 5):
+    def __init__(self, n_subjects: int = 300, timepoints: int = 5, kappa: float = 0.0, inv_sigma_mcd=None):
         np.random.seed(42)
         self.N = n_subjects
         self.T = timepoints
         
         # Z_long: (N, T, 12)
-        self.Z_long = generate_longitudinal_population(self.N, self.T)
+        self.Z_long = generate_longitudinal_population(self.N, self.T, kappa=kappa, inv_sigma_mcd=inv_sigma_mcd)
         
         # Base Phase 1 Space (t=0) for covariance calibration
         self.Z_f1 = self.Z_long[:, 0, :]
         
         self.report_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..', 'docs', 'v5', 'Stage_9B_Functional_Monitoring_Report.md'))
         
-        # Load MCD from Task 51 for baseline Severity covariance
-        self.calibrator = Task51SeverityCalibration(self.N)
-        self.calibrator.Z = self.Z_f1
-        self.calibrator.block_1_robust_centroid()
-        self.inv_sigma_robust = self.calibrator.inv_sigma_mcd
+        if inv_sigma_mcd is not None:
+            self.inv_sigma_robust = inv_sigma_mcd
+        else:
+            # Load MCD from Task 51 for baseline Severity covariance
+            self.calibrator = Task51SeverityCalibration(self.N)
+            self.calibrator.Z = self.Z_f1
+            self.calibrator.block_1_robust_centroid()
+            self.inv_sigma_robust = self.calibrator.inv_sigma_mcd
         
         # Data storage
         self.severity = np.zeros((self.N, self.T))

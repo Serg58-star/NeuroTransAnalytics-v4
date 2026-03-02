@@ -110,11 +110,12 @@ def generate_z_space_population(n_subjects: int = 150, return_phase2: bool = Fal
         return np.array(population_z_rows_f1), np.array(population_z_rows_f2)
     return np.array(population_z_rows_f1)
 
-def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5):
+def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5, kappa: float = 0.0, inv_sigma_mcd=None):
     """
     Generates a longitudinal population matrix Z in R^{N x Timepoints x 12}.
     Data is dynamically anchored to t=0 (baseline geometric state).
     Timepoints evolve systemically: fatigue cumulates gently at each step.
+    Includes an Ornstein-Uhlenbeck style mean-reverting elastic drift if kappa > 0.
     """
     population_z_longitudinal = []
     
@@ -129,6 +130,7 @@ def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5)
         fatigue_spread_rate = np.random.normal(1.1, 0.05)
         
         subject_timepoints = []
+        subject_raw_timepoints = [] # To compute eps_t
         robust_f1 = None
         
         def _to_flat_array(z_space):
@@ -144,7 +146,9 @@ def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5)
                 df_trials = generate_subject_trials(subj, base_speed, variance_multiplier, is_phase2=False, burst_prob=burst_prob_base)
                 robust_f1 = compute_robust_layer(df_trials)
                 z_space = compute_robust_z_layer(robust_f1)
-                subject_timepoints.append(_to_flat_array(z_space))
+                z_flat = _to_flat_array(z_space)
+                subject_timepoints.append(z_flat)
+                subject_raw_timepoints.append(z_flat)
             else:
                 # Phase 2: Cumulative Load Evaluation
                 t_shift = fatigue_shift_rate * t
@@ -156,7 +160,25 @@ def generate_longitudinal_population(n_subjects: int = 150, timepoints: int = 5)
                 
                 # Dynamic Anchoring to t=0 Medians and MADs
                 z_space = compute_anchored_z_layer(robust_load, robust_f1)
-                subject_timepoints.append(_to_flat_array(z_space))
+                z_raw_flat = _to_flat_array(z_space)
+                subject_raw_timepoints.append(z_raw_flat)
+                
+                if kappa > 0.0 and inv_sigma_mcd is not None:
+                    # Stabilized O-U Drift
+                    z_t = np.array(subject_timepoints[-1])
+                    z_t_raw = np.array(subject_raw_timepoints[-2])
+                    z_t1_raw = np.array(subject_raw_timepoints[-1])
+                    
+                    eps_t = z_t1_raw - z_t_raw
+                    # Avoid negative values inside sqrt just in case
+                    dist_sq = np.dot(np.dot(z_t, inv_sigma_mcd), z_t)
+                    s_t = np.sqrt(max(0.0, dist_sq)) 
+                    g_s = s_t / (1.0 + s_t)
+                    
+                    z_t1 = z_t + eps_t - kappa * g_s * z_t
+                    subject_timepoints.append(z_t1.tolist())
+                else:
+                    subject_timepoints.append(z_raw_flat)
                 
         population_z_longitudinal.append(subject_timepoints)
         
