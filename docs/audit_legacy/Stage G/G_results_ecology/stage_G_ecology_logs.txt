@@ -1,0 +1,83 @@
+
+--- Task A: Real Distribution of Context Triples ---
+Top 5 dominant triples (%):
+СЖС    12.452671
+ЖСЖ    11.201827
+ССЖ    11.149604
+ЖЖС     8.336068
+КЖС     7.510141
+Name: proportion, dtype: float64
+
+Bottom 5 rare triples (%):
+СКК    0.779023
+ККЖ    0.517863
+КЖК    0.513934
+КСС    0.263267
+ККК    0.257327
+Name: proportion, dtype: float64
+
+Total unique triples used: 27 out of 27.
+
+--- Task B: Channel Load of Context Triples ---
+Mean P load: 6.51, Variance: 7.10
+Mean K load: 6.75, Variance: 5.78
+Mean R load: 2.83, Variance: 4.39
+Spearman(index, P_load): 0.068
+Spearman(index, K_load): 0.020
+
+--- Task C: Dynamics of Triple Sequence ---
+Transition Matrix (Dom -> NextDom):
+next_dom   BlueDom  GreenDom   Neutral
+dom                                   
+BlueDom   0.773641  0.113183  0.113176
+GreenDom  0.142326  0.762796  0.094878
+Neutral   0.145006  0.080546  0.774448
+
+--- Task D: Sensory Env Before Target Signal (N=3,5,7 windows) ---
+Median accumulated loads before signal (N=3):
+P (Green) accumulated: 19.00
+K (Blue) accumulated: 20.00
+
+Median accumulated loads before signal (N=7):
+P (Green) accumulated: 46.00
+K (Blue) accumulated: 47.00
+
+--- Task E: PSI vs Context Environment ---
+Spearman(PSI, Total Load Length): 0.998, p=0.000e+00
+Spearman(PSI, P_load): 0.842, p=0.000e+00
+
+--- Task F: Complexity of Context Triples ---
+Mean Triple Complexity (Entropy): 1.106
+Variance: 0.044
+Complexity Distribution (%):
+complexity
+High (ABC)    77.656017
+Mid (AAB)     22.343983
+Low (AAA)      0.000000
+Name: proportion, dtype: float64
+
+--- Task G: Slow Dynamics of Stimulus Environment ---
+Spearman(index, slow_P load): 0.237
+Spearman(index, slow_complexity): 0.038
+
+--- Task H: Signal Appearance Context ---
+Red target preceded by median loads: P=18.00, K=20.00
+Shift preceded by median loads: P=21.00, K=21.00
+
+--- Task I: Perceptual Contrast ---
+Mean Perceptual Contrast: 162.45
+Spearman(Contrast, RT): 0.026, p=1.686e-60
+
+--- Task J: Stimulus Environment Map Clustering ---
+Cluster Centers (Standardized):
+     P_load    K_load  complexity  contrast       psi
+0  0.693637  0.906403   -0.141101 -0.626738  1.018560
+1 -1.049097 -1.060100    0.767099  0.137407 -1.056042
+2  0.265734 -0.020664   -0.709491  0.719340 -0.183304
+
+Cluster Sizes (%):
+cluster
+0    39.188710
+1    32.964199
+2    27.847090
+Name: proportion, dtype: float64

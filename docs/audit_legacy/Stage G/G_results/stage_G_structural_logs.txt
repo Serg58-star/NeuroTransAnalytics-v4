@@ -1,0 +1,67 @@
+
+--- Task 1: Positional Color Distribution ---
+Probability Table P(color | position):
+color         blue     green       red
+position                              
+center    0.125358  0.166026  0.708617
+left      0.210549  0.165079  0.624372
+right     0.166483  0.166085  0.667432
+Chi-square statistic: 3495.35, p-value: 0.0000e+00
+Conclusion: biased
+
+--- Task 2: Triple Sequence Structure ---
+Autocorrelations (lags 1-10):
+lag_1: 0.682
+lag_2: 0.366
+lag_3: 0.083
+lag_4: 0.012
+lag_5: -0.056
+lag_6: -0.108
+lag_7: -0.100
+lag_8: -0.092
+lag_9: -0.077
+lag_10: -0.050
+Conclusion: slow context dynamics
+
+--- Task 3: ContextTriple vs PSI ---
+Chi-square statistic (Dominant Color vs PSI Bin): 109421.47, p-value: 0.0000e+00
+Conclusion: structured relationship
+
+--- Task 4: Color Balance Trajectory ---
+Spearman correlation (index vs dominant): -0.058, p-value: 3.8961e-286
+Conclusion: P/K channel balance drift
+
+--- Task 5: Channel Balance Map ---
+Median delta_v4 (Green Dominant): 100.50
+Median delta_v4 (Blue Dominant): 115.00
+Spearman correlation (Num Green vs Delta V4): -0.190, p-value: 0.0000e+00
+
+--- Task 6: Position-weighted Channel Model ---
+Median delta_v4: Left=115.00, Center=109.00, Right=100.00
+No central advantage found.
+
+--- Task 7: Context Complexity Index ---
+Spearman correlation (Context Entropy vs Delta V4): 0.057, p-value: 8.5087e-93
+
+--- Task 8: PSI-Context Interaction ---
+PSI vs DeltaV4 correlation (Green Dominant): -0.058
+PSI vs DeltaV4 correlation (Blue Dominant): -0.259
+
+--- Task 9: Stimulus Index Drift ---
+Color distribution across blocks:
+color      blue     green       red
+block                              
+early  0.167409  0.165306  0.667285
+late   0.166946  0.165277  0.667777
+mid    0.167573  0.166608  0.665819
+
+Dominant context across blocks:
+dominant        -1         0         1
+block                                 
+early     0.452943  0.210104  0.336953
+late      0.416792  0.333262  0.249946
+mid       0.290315  0.374745  0.334940
+Conclusion: protocol drift
+
+--- Task 10: Perceptual Contrast ---
+Spearman correlation (Contrast vs Delta V4): -0.195, p-value: 0.0000e+00
